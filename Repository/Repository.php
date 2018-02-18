@@ -26,7 +26,7 @@ abstract class Repository implements RepositoryInterface
     /**
      * Repository constructor.
      */
-    abstract function __construct(PDO $pdo = null);
+    abstract public function __construct(PDO $pdo = null);
 
 
     /**
@@ -45,15 +45,19 @@ abstract class Repository implements RepositoryInterface
      * @param array $arguments
      * @return array|bool|mixed
      */
-    public function findBy(array $arguments = [])
+    public function findBy(array $arguments = [], $unique = false)
     {
         $where = $this->where($arguments);
         try {
 
             $db = $this->pdo->prepare('SELECT * from ' . $this->getTableName() . $where);
             $db->execute(array_values($arguments));
-            $db->setFetchMode(\PDO::FETCH_CLASS, $this->getEntity());
 
+            if ($unique) {
+                return $db->fetchObject($this->getEntity());
+            }
+
+            $db->setFetchMode(\PDO::FETCH_CLASS, $this->getEntity());
             return $db->fetchAll();
 
         } catch (\Exception $e) {
@@ -142,7 +146,7 @@ abstract class Repository implements RepositoryInterface
      * @param array $arguments
      * @return string
      */
-    private function where(array $arguments = []) {
+    protected function where(array $arguments = []) {
 
         $where = '';
         if (!empty($arguments)) {
@@ -161,7 +165,7 @@ abstract class Repository implements RepositoryInterface
      * @param $value
      * @return string
      */
-    private function formatter($value)
+    protected function formatter($value)
     {
 
         if ($value instanceof \DateTime) {
