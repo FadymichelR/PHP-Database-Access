@@ -8,6 +8,7 @@
 namespace Fady\Repository;
 
 
+use Fady\Entity\Annotation;
 use PDO;
 
 /**
@@ -26,7 +27,7 @@ abstract class Repository implements RepositoryInterface
     /**
      * Repository constructor.
      */
-    abstract public function __construct(PDO $pdo = null);
+    abstract function __construct(PDO $pdo = null);
 
 
     /**
@@ -40,6 +41,7 @@ abstract class Repository implements RepositoryInterface
 
         return $db->fetchObject($this->getEntity());
     }
+
 
     /**
      * @param array $arguments
@@ -83,9 +85,13 @@ abstract class Repository implements RepositoryInterface
     {
 
         $entity = is_array($entity) ? $entity : $entity->toArray();
-        if (array_key_exists('id', $entity)) {
-            unset($entity['id']);
-        }
+
+        $propertiesAreMapped = (new Annotation())->isMapped($this->getEntity());
+        $entity = array_filter($entity,function ($key) use ($propertiesAreMapped) {
+
+            return in_array($key, $propertiesAreMapped);
+        }, ARRAY_FILTER_USE_KEY);
+
 
         $columns = implode(', ', array_keys($entity));
         $values = implode(',', array_fill(0, count($entity), '?'));
@@ -146,7 +152,7 @@ abstract class Repository implements RepositoryInterface
      * @param array $arguments
      * @return string
      */
-    protected function where(array $arguments = []) {
+    private function where(array $arguments = []) {
 
         $where = '';
         if (!empty($arguments)) {
@@ -165,7 +171,7 @@ abstract class Repository implements RepositoryInterface
      * @param $value
      * @return string
      */
-    protected function formatter($value)
+    private function formatter($value)
     {
 
         if ($value instanceof \DateTime) {
