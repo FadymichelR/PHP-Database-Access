@@ -40,6 +40,12 @@ interface RepositoryInterface
      * @param $entity
      * @return mixed
      */
+    public function update($entity);
+
+    /**
+     * @param $entity
+     * @return mixed
+     */
     public function remove($entity);
 
     /**
@@ -47,7 +53,5 @@ interface RepositoryInterface
      * @return mixed
      */
     public function count(array $arguments = []);
-
-
 
 }

@@ -84,22 +84,52 @@ abstract class Repository implements RepositoryInterface
     public function save($entity)
     {
 
-        $entity = is_array($entity) ? $entity : $entity->toArray();
+        if ($entity->getid()) {
+            return $this->update($entity);
+        }
 
-        $propertiesAreMapped = (new Annotation())->isMapped($this->getEntity());
-        $entity = array_filter($entity,function ($key) use ($propertiesAreMapped) {
+        $propertiesAreMapped = $this->mapped($entity);
 
-            return in_array($key, $propertiesAreMapped);
-        }, ARRAY_FILTER_USE_KEY);
-
-
-        $columns = implode(', ', array_keys($entity));
-        $values = implode(',', array_fill(0, count($entity), '?'));
+        $columns = implode(', ', array_keys($propertiesAreMapped));
+        $values = implode(',', array_fill(0, count($propertiesAreMapped), '?'));
 
         try {
 
             $db = $this->pdo->prepare('INSERT INTO ' . $this->getTableName() . ' (' . $columns . ') VALUES (' . $values . ')');
-            $db->execute(array_values(array_map([$this, 'formatter'], $entity)));
+            $db->execute(array_values(array_map([$this, 'formatter'], $propertiesAreMapped)));
+
+            return true;
+
+        } catch (\Exception $e) {
+
+            echo 'Error : ', $e->getMessage(), "\n";
+
+            return false;
+        }
+
+    }
+
+    /**
+     * @param $entity
+     * @return bool|mixed
+     */
+    public function update($entity)
+    {
+        try {
+
+            if (!$entity->getid()) {
+                throw New \Exception('This entity haven\'t an ID');
+            }
+
+            $propertiesAreMapped = $this->mapped($entity);
+            $cols = [];
+            foreach($propertiesAreMapped as $key => $value) {
+                $cols[] = "$key = :$key";
+            }
+
+
+            $db = $this->pdo->prepare('UPDATE ' . $this->getTableName() . ' SET '.implode(', ',$cols).' WHERE id ='.$entity->getid().'');
+            $db->execute(array_map([$this, 'formatter'], $propertiesAreMapped));
 
             return true;
 
@@ -178,6 +208,23 @@ abstract class Repository implements RepositoryInterface
             $value = $value->format('Y-m-d H:i:s');
         }
         return $value;
+    }
+
+    /**
+     * @param $entity
+     * @return array
+     */
+    private function mapped($entity) {
+
+        $entity = is_array($entity) ? $entity : $entity->toArray();
+
+        $propertiesAreMapped = (new Annotation())->isMapped($this->getEntity());
+        $entity = array_filter($entity,function ($key) use ($propertiesAreMapped) {
+
+            return in_array($key, $propertiesAreMapped);
+        }, ARRAY_FILTER_USE_KEY);
+
+        return $entity;
     }
 
     abstract protected function getTableName();
