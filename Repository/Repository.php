@@ -48,7 +48,8 @@ abstract class Repository implements RepositoryInterface
 
     /**
      * @param array $arguments
-     * @return array|bool|mixed
+     * @param bool $unique
+     * @return array|mixed
      */
     public function findBy(array $arguments = [], $unique = false)
     {
@@ -80,7 +81,7 @@ abstract class Repository implements RepositoryInterface
     }
 
     /**
-     * @param $entity
+     * @param EntityInterface $entity
      * @return bool|mixed
      */
     public function save(EntityInterface $entity)
@@ -110,7 +111,7 @@ abstract class Repository implements RepositoryInterface
     }
 
     /**
-     * @param $entity
+     * @param EntityInterface $entity
      * @return bool|mixed
      */
     public function update(EntityInterface $entity)

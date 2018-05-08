@@ -8,6 +8,8 @@
 namespace Fady\Repository;
 
 
+use Fady\Entity\EntityInterface;
+
 interface RepositoryInterface
 {
 
