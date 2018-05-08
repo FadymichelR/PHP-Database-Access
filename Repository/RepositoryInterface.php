@@ -34,19 +34,19 @@ interface RepositoryInterface
      * @param $entity
      * @return mixed
      */
-    public function save($entity);
+    public function save(EntityInterface $entity);
 
     /**
      * @param $entity
      * @return mixed
      */
-    public function update($entity);
+    public function update(EntityInterface $entity);
 
     /**
      * @param $entity
      * @return mixed
      */
-    public function remove($entity);
+    public function remove(EntityInterface $entity);
 
     /**
      * @param $by
