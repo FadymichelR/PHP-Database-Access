@@ -1,14 +1,10 @@
 <?php
-/**
- * Created by Fadymichel.
- * git: https://github.com/FadymichelR
- * 2018
- */
+
 
 namespace Fady\Entity;
 
 
-class Entity
+abstract class Entity implements EntityInterface
 {
 
     /**

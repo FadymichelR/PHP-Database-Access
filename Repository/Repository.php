@@ -9,6 +9,8 @@ namespace Fady\Repository;
 
 
 use Fady\Entity\Annotation;
+use Fady\Entity\Entity;
+use Fady\Entity\EntityInterface;
 use PDO;
 
 /**
@@ -27,7 +29,7 @@ abstract class Repository implements RepositoryInterface
     /**
      * Repository constructor.
      */
-    abstract function __construct(PDO $pdo = null);
+    abstract function __construct(PDO $pdo);
 
 
     /**
@@ -36,6 +38,7 @@ abstract class Repository implements RepositoryInterface
      */
     public function find($id)
     {
+
         $db = $this->pdo->prepare('SELECT * FROM ' . $this->getTableName() . ' WHERE id = ?');
         $db->execute([$id]);
 
@@ -64,8 +67,7 @@ abstract class Repository implements RepositoryInterface
 
         } catch (\Exception $e) {
 
-            echo 'Error : ', $e->getMessage(), "\n";
-            return false;
+            throw new \Exception($e->getMessage());
         }
     }
 
@@ -81,7 +83,7 @@ abstract class Repository implements RepositoryInterface
      * @param $entity
      * @return bool|mixed
      */
-    public function save($entity)
+    public function save(EntityInterface $entity)
     {
 
         if ($entity->getid()) {
@@ -102,9 +104,7 @@ abstract class Repository implements RepositoryInterface
 
         } catch (\Exception $e) {
 
-            echo 'Error : ', $e->getMessage(), "\n";
-
-            return false;
+            throw new \Exception($e->getMessage());
         }
 
     }
@@ -113,7 +113,7 @@ abstract class Repository implements RepositoryInterface
      * @param $entity
      * @return bool|mixed
      */
-    public function update($entity)
+    public function update(EntityInterface $entity)
     {
         try {
 
@@ -123,21 +123,18 @@ abstract class Repository implements RepositoryInterface
 
             $propertiesAreMapped = $this->mapped($entity);
             $cols = [];
-            foreach($propertiesAreMapped as $key => $value) {
+            foreach ($propertiesAreMapped as $key => $value) {
                 $cols[] = "$key = :$key";
             }
 
-
-            $db = $this->pdo->prepare('UPDATE ' . $this->getTableName() . ' SET '.implode(', ',$cols).' WHERE id ='.$entity->getid().'');
+            $db = $this->pdo->prepare('UPDATE ' . $this->getTableName() . ' SET ' . implode(', ', $cols) . ' WHERE id =' . $entity->getid() . '');
             $db->execute(array_map([$this, 'formatter'], $propertiesAreMapped));
 
             return true;
 
         } catch (\Exception $e) {
 
-            echo 'Error : ', $e->getMessage(), "\n";
-
-            return false;
+            throw new \Exception($e->getMessage());
         }
 
     }
@@ -147,7 +144,7 @@ abstract class Repository implements RepositoryInterface
      * @param $entity
      * @return bool|mixed
      */
-    public function remove($entity)
+    public function remove(EntityInterface $entity)
     {
         $db = $this->pdo->prepare('DELETE FROM ' . $this->getTableName() . ' WHERE id = ?');
         $db->execute([is_object($entity) ? $entity->getId() : (int)$entity]);
@@ -172,8 +169,7 @@ abstract class Repository implements RepositoryInterface
 
         } catch (\Exception $e) {
 
-            echo 'Error : ', $e->getMessage(), "\n";
-            return false;
+            throw new \Exception($e->getMessage());
         }
     }
 
@@ -182,7 +178,8 @@ abstract class Repository implements RepositoryInterface
      * @param array $arguments
      * @return string
      */
-    private function where(array $arguments = []) {
+    private function where(array $arguments = [])
+    {
 
         $where = '';
         if (!empty($arguments)) {
@@ -214,12 +211,13 @@ abstract class Repository implements RepositoryInterface
      * @param $entity
      * @return array
      */
-    private function mapped($entity) {
+    private function mapped(EntityInterface $entity)
+    {
 
         $entity = is_array($entity) ? $entity : $entity->toArray();
 
         $propertiesAreMapped = (new Annotation())->isMapped($this->getEntity());
-        $entity = array_filter($entity,function ($key) use ($propertiesAreMapped) {
+        $entity = array_filter($entity, function ($key) use ($propertiesAreMapped) {
 
             return in_array($key, $propertiesAreMapped);
         }, ARRAY_FILTER_USE_KEY);
