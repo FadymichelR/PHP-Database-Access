@@ -6,15 +6,21 @@
  */
 
 
-namespace Fady\Entity;
+namespace Webby\Entity;
 
-
+/**
+ * Class Annotation
+ * @package Webby\Entity
+ */
 class Annotation
 {
 
-    
-
-    public function isMapped($className) {
+    /**
+     * @param string $className
+     * @return array
+     * @throws \ReflectionException
+     */
+    public function isMapped(string $className) {
 
         $rc = new \ReflectionClass($className);
 

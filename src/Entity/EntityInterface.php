@@ -1,7 +1,11 @@
 <?php
 
-namespace Fady\Entity;
+namespace Webby\Entity;
 
+/**
+ * Interface EntityInterface
+ * @package Webby\Entity
+ */
 interface EntityInterface {
 
     /**

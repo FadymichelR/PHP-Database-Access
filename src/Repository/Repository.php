@@ -5,17 +5,16 @@
  * 2018
  */
 
-namespace Fady\Repository;
+namespace Webby\Repository;
 
 
-use Fady\Entity\Annotation;
-use Fady\Entity\Entity;
-use Fady\Entity\EntityInterface;
+use Webby\Entity\Annotation;
+use Webby\Entity\EntityInterface;
 use PDO;
 
 /**
  * Class Repository
- * @package App\Repository
+ * @package Webby\Repository
  */
 abstract class Repository implements RepositoryInterface
 {
@@ -36,7 +35,7 @@ abstract class Repository implements RepositoryInterface
      * @param $id
      * @return mixed
      */
-    public function find($id)
+    public function find(int $id)
     {
 
         $db = $this->pdo->prepare('SELECT * FROM ' . $this->getTableName() . ' WHERE id = ?');
@@ -50,8 +49,9 @@ abstract class Repository implements RepositoryInterface
      * @param array $arguments
      * @param bool $unique
      * @return array|mixed
+     * @throws \Exception
      */
-    public function findBy(array $arguments = [], $unique = false)
+    public function findBy(array $arguments = [], bool $unique = false)
     {
         $where = $this->where($arguments);
         try {
@@ -73,7 +73,8 @@ abstract class Repository implements RepositoryInterface
     }
 
     /**
-     * @return array|bool|mixed
+     * @return array|mixed
+     * @throws \Exception
      */
     public function findAll()
     {
@@ -83,6 +84,7 @@ abstract class Repository implements RepositoryInterface
     /**
      * @param EntityInterface $entity
      * @return bool|mixed
+     * @throws \Exception
      */
     public function save(EntityInterface $entity)
     {
@@ -99,9 +101,8 @@ abstract class Repository implements RepositoryInterface
         try {
 
             $db = $this->pdo->prepare('INSERT INTO ' . $this->getTableName() . ' (' . $columns . ') VALUES (' . $values . ')');
-            $db->execute(array_values(array_map([$this, 'formatter'], $propertiesAreMapped)));
 
-            return true;
+            return $db->execute(array_values(array_map([$this, 'formatter'], $propertiesAreMapped)));
 
         } catch (\Exception $e) {
 
@@ -113,6 +114,7 @@ abstract class Repository implements RepositoryInterface
     /**
      * @param EntityInterface $entity
      * @return bool|mixed
+     * @throws \Exception
      */
     public function update(EntityInterface $entity)
     {
@@ -128,10 +130,11 @@ abstract class Repository implements RepositoryInterface
                 $cols[] = "$key = :$key";
             }
 
-            $db = $this->pdo->prepare('UPDATE ' . $this->getTableName() . ' SET ' . implode(', ', $cols) . ' WHERE id =' . $entity->getid() . '');
-            $db->execute(array_map([$this, 'formatter'], $propertiesAreMapped));
+            $db = $this->pdo->prepare(
+                'UPDATE ' . $this->getTableName() . ' SET ' . implode(', ', $cols) . ' WHERE id =' . $entity->getid() . ''
+            );
 
-            return true;
+            return $db->execute(array_map([$this, 'formatter'], $propertiesAreMapped));
 
         } catch (\Exception $e) {
 
@@ -148,14 +151,14 @@ abstract class Repository implements RepositoryInterface
     public function remove(EntityInterface $entity)
     {
         $db = $this->pdo->prepare('DELETE FROM ' . $this->getTableName() . ' WHERE id = ?');
-        $db->execute([is_object($entity) ? $entity->getId() : (int)$entity]);
 
-        return true;
+        return $db->execute([is_object($entity) ? $entity->getId() : (int)$entity]);
     }
 
     /**
      * @param array $arguments
-     * @return bool|mixed
+     * @return mixed
+     * @throws \Exception
      */
     public function count(array $arguments = [])
     {
@@ -197,7 +200,7 @@ abstract class Repository implements RepositoryInterface
 
     /**
      * @param $value
-     * @return string
+     * @return mixed
      */
     private function formatter($value)
     {
@@ -209,13 +212,14 @@ abstract class Repository implements RepositoryInterface
     }
 
     /**
-     * @param $entity
+     * @param EntityInterface $entity
      * @return array
+     * @throws \ReflectionException
      */
     private function mapped(EntityInterface $entity)
     {
 
-        $entity = is_array($entity) ? $entity : $entity->toArray();
+        $entity = $entity->toArray();
 
         $propertiesAreMapped = (new Annotation())->isMapped($this->getEntity());
         $entity = array_filter($entity, function ($key) use ($propertiesAreMapped) {

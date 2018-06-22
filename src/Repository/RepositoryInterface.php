@@ -5,10 +5,10 @@
  * 2018
  */
 
-namespace Fady\Repository;
+namespace Webby\Repository;
 
 
-use Fady\Entity\EntityInterface;
+use Webby\Entity\EntityInterface;
 
 interface RepositoryInterface
 {
@@ -17,7 +17,7 @@ interface RepositoryInterface
      * @param $id
      * @return mixed
      */
-    public function find($id);
+    public function find(int $id);
 
 
     /**

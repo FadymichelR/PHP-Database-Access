@@ -1,9 +1,12 @@
 <?php
 
 
-namespace Fady\Entity;
+namespace Webby\Entity;
 
-
+/**
+ * Class Entity
+ * @package Webby\Entity
+ */
 abstract class Entity implements EntityInterface
 {
 
@@ -13,6 +16,9 @@ abstract class Entity implements EntityInterface
     protected $id;
 
 
+    /**
+     * @param array|null $data
+     */
     public function hydrate(array $data = null)
     {
 
@@ -27,16 +33,17 @@ abstract class Entity implements EntityInterface
 
     }
 
-    public function toArray($without = [])
+    /**
+     * @return array
+     */
+    public function toArray()
     {
 
         $vars = get_object_vars($this);
-        $array = array();
+        $array = [];
         foreach ($vars as $key => $value) {
-            if (!in_array($key,$without)) {
 
-                $array [ltrim($key, '_')] = $value;
-            }
+            $array [ltrim($key, '_')] = $value;
         }
         return $array;
     }
