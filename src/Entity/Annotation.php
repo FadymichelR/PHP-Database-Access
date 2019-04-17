@@ -6,7 +6,7 @@
  */
 
 
-namespace Webby\Entity;
+namespace Fad\Entity;
 
 /**
  * Class Annotation
@@ -20,7 +20,8 @@ class Annotation
      * @return array
      * @throws \ReflectionException
      */
-    public function isMapped(string $className) {
+    public function isMapped(string $className) : array
+    {
 
         $rc = new \ReflectionClass($className);
 

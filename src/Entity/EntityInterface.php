@@ -1,6 +1,6 @@
 <?php
 
-namespace Webby\Entity;
+namespace Fad\Entity;
 
 /**
  * Interface EntityInterface
@@ -11,16 +11,16 @@ interface EntityInterface {
     /**
      * @return int
      */
-    public function getId();
+    public function getId(): int;
 
     /**
      * @return array
      */
-    public function toArray();
+    public function toArray(): array;
 
     /**
      * @return void
      */
-    public function hydrate();
+    public function hydrate(): void;
 
 }

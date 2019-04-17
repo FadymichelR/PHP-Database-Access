@@ -5,11 +5,11 @@
  * 2018
  */
 
-namespace Webby\Repository;
+namespace Fad\Repository;
 
 
-use Webby\Entity\Annotation;
-use Webby\Entity\EntityInterface;
+use Fad\Entity\Annotation;
+use Fad\Entity\EntityInterface;
 use PDO;
 
 /**
@@ -27,6 +27,7 @@ abstract class Repository implements RepositoryInterface
 
     /**
      * Repository constructor.
+     * @param PDO $pdo
      */
     abstract function __construct(PDO $pdo);
 
@@ -76,17 +77,17 @@ abstract class Repository implements RepositoryInterface
      * @return array|mixed
      * @throws \Exception
      */
-    public function findAll()
+    public function findAll(): array
     {
         return $this->findBy();
     }
 
     /**
      * @param EntityInterface $entity
-     * @return bool|mixed
+     * @return bool
      * @throws \Exception
      */
-    public function save(EntityInterface $entity)
+    public function save(EntityInterface $entity): bool
     {
 
         if ($entity->getid()) {
@@ -116,7 +117,7 @@ abstract class Repository implements RepositoryInterface
      * @return bool|mixed
      * @throws \Exception
      */
-    public function update(EntityInterface $entity)
+    public function update(EntityInterface $entity): bool
     {
         try {
 
@@ -146,9 +147,9 @@ abstract class Repository implements RepositoryInterface
 
     /**
      * @param $entity
-     * @return bool|mixed
+     * @return bool
      */
-    public function remove(EntityInterface $entity)
+    public function remove(EntityInterface $entity): bool
     {
         $db = $this->pdo->prepare('DELETE FROM ' . $this->getTableName() . ' WHERE id = ?');
 
@@ -216,7 +217,7 @@ abstract class Repository implements RepositoryInterface
      * @return array
      * @throws \ReflectionException
      */
-    private function mapped(EntityInterface $entity)
+    private function mapped(EntityInterface $entity): array
     {
 
         $entity = $entity->toArray();
@@ -230,8 +231,14 @@ abstract class Repository implements RepositoryInterface
         return $entity;
     }
 
-    abstract protected function getTableName();
+    /**
+     * @return string
+     */
+    abstract protected function getTableName(): string;
 
-    abstract protected function getEntity();
+    /**
+     * @return string
+     */
+    abstract protected function getEntity(): string;
 
 }

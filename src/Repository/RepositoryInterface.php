@@ -5,11 +5,14 @@
  * 2018
  */
 
-namespace Webby\Repository;
+namespace Fad\Repository;
 
+use Fad\Entity\EntityInterface;
 
-use Webby\Entity\EntityInterface;
-
+/**
+ * Interface RepositoryInterface
+ * @package Fad\Repository
+ */
 interface RepositoryInterface
 {
 
@@ -19,9 +22,8 @@ interface RepositoryInterface
      */
     public function find(int $id);
 
-
     /**
-     * @param array $options
+     * @param array $arguments
      * @return mixed
      */
     public function findBy(array $arguments = []);
@@ -29,29 +31,29 @@ interface RepositoryInterface
     /**
      * @return mixed
      */
-    public function findAll();
+    public function findAll(): array;
 
 
     /**
      * @param $entity
-     * @return mixed
+     * @return bool
      */
-    public function save(EntityInterface $entity);
+    public function save(EntityInterface $entity): bool;
 
     /**
      * @param $entity
-     * @return mixed
+     * @return bool
      */
-    public function update(EntityInterface $entity);
+    public function update(EntityInterface $entity): bool;
 
     /**
      * @param $entity
-     * @return mixed
+     * @return bool
      */
-    public function remove(EntityInterface $entity);
+    public function remove(EntityInterface $entity): bool;
 
     /**
-     * @param $by
+     * @param array $arguments
      * @return mixed
      */
     public function count(array $arguments = []);

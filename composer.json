@@ -1,20 +1,21 @@
 {
-    "name": "FadymichelR/PHP-Database-Access",
+    "name": "fad/php-database-access",
     "description": "a Simple PHP repository pattern in a MVC architecture (Database Access)",
     "type": "package",
     "autoload": {
         "psr-4": {
-            "Webby\\": "src/"
+            "Fad\\": "src/"
         }
     },
     "license": "MIT",
     "authors": [
         {
-            "name": "Fady M.R",
-            "email": "fadymichel.r@gmail.com"
+            "name": "Fad M.R",
+            "email": "fad@heycode.xyz"
         }
     ],
     "require": {
-        "php": ">=7.2"
+        "php": ">=7.2",
+        "ext-pdo": "*"
     }
 }

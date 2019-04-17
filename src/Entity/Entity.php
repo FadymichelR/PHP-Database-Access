@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Webby\Entity;
+namespace Fad\Entity;
 
 /**
  * Class Entity
@@ -19,7 +19,7 @@ abstract class Entity implements EntityInterface
     /**
      * @param array|null $data
      */
-    public function hydrate(array $data = null)
+    public function hydrate(array $data = null): void
     {
 
         if ($data !== null) {
@@ -36,7 +36,7 @@ abstract class Entity implements EntityInterface
     /**
      * @return array
      */
-    public function toArray()
+    public function toArray(): array
     {
 
         $vars = get_object_vars($this);
@@ -51,7 +51,7 @@ abstract class Entity implements EntityInterface
     /**
      * @return int
      */
-    public function getId()
+    public function getId(): int
     {
         return $this->id;
     }
