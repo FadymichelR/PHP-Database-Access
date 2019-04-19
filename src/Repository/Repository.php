@@ -29,7 +29,11 @@ abstract class Repository implements RepositoryInterface
      * Repository constructor.
      * @param PDO $pdo
      */
-    abstract function __construct(PDO $pdo);
+    public function __construct(PDO $pdo)
+    {
+        $pdo->setAttribute(PDO::ATTR_STRINGIFY_FETCHES, false);
+        $this->pdo = $pdo;
+    }
 
 
     /**
@@ -42,7 +46,8 @@ abstract class Repository implements RepositoryInterface
         $db = $this->pdo->prepare('SELECT * FROM ' . $this->getTableName() . ' WHERE id = ?');
         $db->execute([$id]);
 
-        return $db->fetchObject($this->getEntity());
+        $db->setFetchMode(\PDO::FETCH_CLASS | \PDO::FETCH_PROPS_LATE, $this->getEntity());
+        return $db->fetchObject();
     }
 
 
@@ -64,7 +69,7 @@ abstract class Repository implements RepositoryInterface
                 return $db->fetchObject($this->getEntity());
             }
 
-            $db->setFetchMode(\PDO::FETCH_CLASS, $this->getEntity());
+            $db->setFetchMode(\PDO::FETCH_CLASS | \PDO::FETCH_PROPS_LATE, $this->getEntity());
             return $db->fetchAll();
 
         } catch (\Exception $e) {
@@ -132,7 +137,8 @@ abstract class Repository implements RepositoryInterface
             }
 
             $db = $this->pdo->prepare(
-                'UPDATE ' . $this->getTableName() . ' SET ' . implode(', ', $cols) . ' WHERE id =' . $entity->getid() . ''
+                'UPDATE ' . $this->getTableName() . ' SET ' . implode(', ',
+                    $cols) . ' WHERE id =' . $entity->getid() . ''
             );
 
             return $db->execute(array_map([$this, 'formatter'], $propertiesAreMapped));
