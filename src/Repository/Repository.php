@@ -53,9 +53,9 @@ abstract class Repository implements RepositoryInterface
     /**
      * @param array $arguments
      * @param bool $unique
-     * @return array
+     * @return array|object|null
      */
-    public function findBy(array $arguments = [], bool $unique = false): array
+    public function findBy(array $arguments = [], bool $unique = false)
     {
         $db = $this->pdo->prepare('SELECT * from ' . $this->getTableName() . $this->where($arguments));
         $db->execute(array_values($arguments));
@@ -63,7 +63,7 @@ abstract class Repository implements RepositoryInterface
         $db->setFetchMode(\PDO::FETCH_CLASS | \PDO::FETCH_PROPS_LATE, $this->getEntity());
 
         if ($unique) {
-            return $db->fetch();
+            return $db->fetch() ?: null;
         }
         return $db->fetchAll();
     }

@@ -24,9 +24,9 @@ interface RepositoryInterface
 
     /**
      * @param array $arguments
-     * @return array
+     * @return array|object|null
      */
-    public function findBy(array $arguments = []): array;
+    public function findBy(array $arguments = []);
 
     /**
      * @return mixed
