@@ -18,15 +18,15 @@ interface RepositoryInterface
 
     /**
      * @param $id
-     * @return mixed
+     * @return null|object
      */
-    public function find(int $id);
+    public function find(int $id): ?object;
 
     /**
      * @param array $arguments
-     * @return mixed
+     * @return array
      */
-    public function findBy(array $arguments = []);
+    public function findBy(array $arguments = []): array;
 
     /**
      * @return mixed
@@ -54,8 +54,8 @@ interface RepositoryInterface
 
     /**
      * @param array $arguments
-     * @return mixed
+     * @return int
      */
-    public function count(array $arguments = []);
+    public function count(array $arguments = []): int;
 
 }
