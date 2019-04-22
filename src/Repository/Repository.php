@@ -24,14 +24,13 @@ abstract class Repository implements RepositoryInterface
      */
     protected $pdo;
 
-
     /**
      * Repository constructor.
      * @param PDO $pdo
      */
     public function __construct(PDO $pdo)
     {
-        $pdo->setAttribute(PDO::ATTR_STRINGIFY_FETCHES, false);
+        $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
         $this->pdo = $pdo;
     }
 
@@ -40,47 +39,37 @@ abstract class Repository implements RepositoryInterface
      * @param $id
      * @return mixed
      */
-    public function find(int $id)
+    public function find(int $id): ?object
     {
 
         $db = $this->pdo->prepare('SELECT * FROM ' . $this->getTableName() . ' WHERE id = ?');
         $db->execute([$id]);
 
         $db->setFetchMode(\PDO::FETCH_CLASS | \PDO::FETCH_PROPS_LATE, $this->getEntity());
-        return $db->fetchObject();
+        return $db->fetch() ?: null;
     }
 
 
     /**
      * @param array $arguments
      * @param bool $unique
-     * @return array|mixed
-     * @throws \Exception
+     * @return array
      */
-    public function findBy(array $arguments = [], bool $unique = false)
+    public function findBy(array $arguments = [], bool $unique = false): array
     {
-        $where = $this->where($arguments);
-        try {
+        $db = $this->pdo->prepare('SELECT * from ' . $this->getTableName() . $this->where($arguments));
+        $db->execute(array_values($arguments));
 
-            $db = $this->pdo->prepare('SELECT * from ' . $this->getTableName() . $where);
-            $db->execute(array_values($arguments));
+        $db->setFetchMode(\PDO::FETCH_CLASS | \PDO::FETCH_PROPS_LATE, $this->getEntity());
 
-            if ($unique) {
-                return $db->fetchObject($this->getEntity());
-            }
-
-            $db->setFetchMode(\PDO::FETCH_CLASS | \PDO::FETCH_PROPS_LATE, $this->getEntity());
-            return $db->fetchAll();
-
-        } catch (\Exception $e) {
-
-            throw new \Exception($e->getMessage());
+        if ($unique) {
+            return $db->fetch();
         }
+        return $db->fetchAll();
     }
 
     /**
-     * @return array|mixed
-     * @throws \Exception
+     * @return array
      */
     public function findAll(): array
     {
@@ -164,25 +153,16 @@ abstract class Repository implements RepositoryInterface
 
     /**
      * @param array $arguments
-     * @return mixed
-     * @throws \Exception
+     * @return int
      */
-    public function count(array $arguments = [])
+    public function count(array $arguments = []): int
     {
-        $where = $this->where($arguments);
+        $db = $this->pdo->prepare('SELECT count(*) from ' . $this->getTableName() . $this->where($arguments));
+        $db->execute(array_values($arguments));
 
-        try {
-
-            $db = $this->pdo->prepare('SELECT count(*) from ' . $this->getTableName() . $where);
-            $db->execute(array_values($arguments));
-
-            return $db->fetchColumn();
-
-        } catch (\Exception $e) {
-
-            throw new \Exception($e->getMessage());
-        }
+        return $db->fetchColumn();
     }
+
 
 
     /**
@@ -236,6 +216,15 @@ abstract class Repository implements RepositoryInterface
 
         return $entity;
     }
+
+    /**
+     * @return PDO
+     */
+    public function getPdo(): PDO
+    {
+        return $this->pdo;
+    }
+
 
     /**
      * @return string

@@ -15,7 +15,6 @@ abstract class Entity implements EntityInterface
      */
     protected $id;
 
-
     /**
      * @param array|null $data
      */
@@ -31,6 +30,19 @@ abstract class Entity implements EntityInterface
             }
         }
 
+    }
+
+    /**
+     * @param $name
+     * @param $value
+     */
+    public function __set($name, $value)
+    {
+        if (property_exists($this, $name)) {
+            $this->$name = $value;
+        } elseif (property_exists($this, ($name = str_replace('_', '', lcfirst(ucwords($name, '_')))))) {
+            $this->$name = $value;
+        }
     }
 
     /**
