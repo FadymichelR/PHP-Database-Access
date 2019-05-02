@@ -50,11 +50,8 @@ abstract class Entity implements EntityInterface
      */
     public function toArray(): array
     {
-
-        $vars = get_object_vars($this);
         $array = [];
-        foreach ($vars as $key => $value) {
-
+        foreach (get_object_vars($this) as $key => $value) {
             $array [ltrim($key, '_')] = $value;
         }
         return $array;

@@ -1,0 +1,26 @@
+<?php
+
+
+namespace %migrations_namespace%;
+
+use Fad\Migrations\AbstractMigration;
+
+class %version% extends AbstractMigration
+{
+
+    /**
+     * @return void
+     */
+    public function up(): void
+    {
+        // TODO: Implement up() method.
+    }
+
+    /**
+     * @return void
+     */
+    public function down(): void
+    {
+        // TODO: Implement down() method.
+    }
+}

@@ -17,5 +17,6 @@
     "require": {
         "php": ">=7.2",
         "ext-pdo": "*"
-    }
+    },
+    "bin": ["bin/database"]
 }
