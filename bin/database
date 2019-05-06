@@ -1,8 +1,5 @@
 #!/usr/bin/php
 <?php
-
-use Fad\Migrations\MigrateService;
-
 set_time_limit(0);
 
 if (file_exists(dirname(__DIR__) . '/../../autoload.php')) {
@@ -19,13 +16,22 @@ if (file_exists(dirname(__DIR__) . '/../../autoload.php')) {
 }
 
 $params = require dirname(__DIR__) . '/../../../fad-migration.php';
-$migration = new MigrateService($params);
+$migration = new \Fad\Migrations\MigrateService($params);
 
-switch ($argv[1]) {
-    case 'generate':
-        $migration->generateMigration();
-        break;
-    case 'migrate':
-        $migration->migrate();
-        break;
+
+try  {
+    switch ($argv[1]) {
+        case 'generate':
+            $migration->generateMigration();
+            echo 'Migration generate' . PHP_EOL;
+            break;
+        case 'migrate':
+            $migration->migrate();
+            foreach ($migration->getSuccess() as $version) {
+                echo 'Migrating '.$version.PHP_EOL;
+            }
+            break;
+    }
+}catch (\Exception $e) {
+    echo $e->getMessage().PHP_EOL;
 }

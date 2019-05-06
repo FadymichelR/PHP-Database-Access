@@ -18,6 +18,11 @@ class MigrateService
      */
     private $params;
 
+    /***
+     * @var array
+     */
+    private $success = [];
+
     /**
      * MigrateService constructor.
      * @param array $params
@@ -41,11 +46,9 @@ class MigrateService
     {
         $file = date('YmdHis') . '.sql';
         file_put_contents($this->params['migrations_directory'] . DIRECTORY_SEPARATOR . $file, '');
-        echo 'Migration ' . $file . ' generate' . PHP_EOL;
     }
 
     /**
-     * @param string|null $version
      */
     public function migrate(): void
     {
@@ -60,15 +63,11 @@ class MigrateService
             if (in_array($version, $versions)) {
                 continue;
             }
-            echo 'Migrating ' . $version . PHP_EOL;
-            try {
-                $this->pdo->query(file_get_contents($migration));
-                $status = $this->pdo->prepare('INSERT INTO ' . $this->params['table_name'] . ' (`version`) VALUES (:version)')
-                    ->execute(['version' => $version]);
-            } catch (\Exception $e) {
-                var_dump($e->getMessage());
-            }
+            $this->success[] = $version;
 
+            $this->pdo->query(file_get_contents($migration));
+            $this->pdo->prepare('INSERT INTO ' . $this->params['table_name'] . ' (`version`) VALUES (:version)')
+                ->execute(['version' => $version]);
         }
 
     }
@@ -82,7 +81,6 @@ class MigrateService
     }
 
     /**
-     * @param string $folder
      * @return array
      */
     private function getMigrations(): array
@@ -98,4 +96,13 @@ class MigrateService
         ksort($migrations);
         return $migrations;
     }
+
+    /**
+     * @return array
+     */
+    public function getSuccess(): array
+    {
+        return $this->success;
+    }
+
 }
