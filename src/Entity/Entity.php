@@ -47,20 +47,24 @@ abstract class Entity implements EntityInterface
 
     /**
      * @return array
+     * @throws \ReflectionException
      */
     public function toArray(): array
     {
         $array = [];
-        foreach (get_object_vars($this) as $key => $value) {
-            $array [ltrim($key, '_')] = $value;
+        (new \ReflectionClass($this))->getProperties();
+        foreach ((new \ReflectionClass($this))->getProperties() as $property) {
+            $property->setAccessible(true);
+            $array [$property->getName()] = $property->getValue($this);
         }
+
         return $array;
     }
 
     /**
      * @return int
      */
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }
