@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Fad\Migrations;
 
 /**
@@ -13,6 +12,7 @@ class MigrateService
      * @var \PDO
      */
     private $pdo;
+
     /**
      * @var array
      */
@@ -37,12 +37,9 @@ class MigrateService
     }
 
     /**
-     * @return void
+     * @param string|null $model
      */
-    /**
-     * @return void
-     */
-    public function generateMigration(): void
+    public function generateMigration(?string $model = null): void
     {
         $file = date('YmdHis') . '.sql';
         file_put_contents($this->params['migrations_directory'] . DIRECTORY_SEPARATOR . $file, '');
@@ -53,6 +50,7 @@ class MigrateService
     public function migrate(): void
     {
         $this->createVersion();
+        $this->pdo->setAttribute( \PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION );
 
         $stmt = $this->pdo->prepare('SELECT version FROM ' . $this->params['table_name']);
         $stmt->execute();
@@ -63,11 +61,12 @@ class MigrateService
             if (in_array($version, $versions)) {
                 continue;
             }
-            $this->success[] = $version;
 
             $this->pdo->query(file_get_contents($migration));
             $this->pdo->prepare('INSERT INTO ' . $this->params['table_name'] . ' (`version`) VALUES (:version)')
                 ->execute(['version' => $version]);
+
+            $this->success[] = $version;
         }
 
     }
