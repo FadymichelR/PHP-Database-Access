@@ -52,7 +52,7 @@ class QueryBuilder
      */
     public function from(string $table, ?string $alias = null): self
     {
-        if (is_null($alias)) {
+        if ($alias === null) {
             $this->from[] = $table;
         } else {
             $this->from[] = "$table AS $alias";
@@ -65,9 +65,10 @@ class QueryBuilder
      */
     public function __toString(): string
     {
+        $where = empty($this->conditions) ? '' : ' WHERE ' . implode(' AND ', $this->conditions);
         return 'SELECT ' . implode(', ', $this->fields)
             . ' FROM ' . implode(', ', $this->from)
-            . ' WHERE ' . implode(' AND ', $this->conditions);
+            . $where;
     }
 
 }

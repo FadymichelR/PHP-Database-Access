@@ -4,23 +4,13 @@ namespace Fad\Entity;
 
 /**
  * Interface EntityInterface
- * @package Webby\Entity
+ * @package Fad\Entity
  */
 interface EntityInterface {
 
     /**
-     * @return int
+     * @return int|null
      */
-    public function getId(): int;
-
-    /**
-     * @return array
-     */
-    public function toArray(): array;
-
-    /**
-     * @return void
-     */
-    public function hydrate(): void;
+    public function getId(): ?int;
 
 }

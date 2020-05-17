@@ -1,9 +1,4 @@
 <?php
-/**
- * Created by Fadymichel.
- * git: https://github.com/FadymichelR
- * 2018
- */
 
 namespace Fad\Repository;
 
@@ -24,12 +19,18 @@ interface RepositoryInterface
 
     /**
      * @param array $arguments
-     * @return array|object|null
+     * @return array
      */
-    public function findBy(array $arguments = []);
+    public function findBy(array $arguments = []): array;
 
     /**
-     * @return mixed
+     * @param array $arguments
+     * @return object|null
+     */
+    public function findOneBy(array $arguments = []): ?object;
+
+    /**
+     * @return array
      */
     public function findAll(): array;
 

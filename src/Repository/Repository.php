@@ -1,15 +1,13 @@
 <?php
-/**
- * Created by Fadymichel.
- * git: https://github.com/FadymichelR
- * 2018
- */
 
 namespace Fad\Repository;
 
 
 use Fad\Entity\Annotation;
 use Fad\Entity\EntityInterface;
+use Fad\Helper\Hydrate;
+use Fad\Helper\ObjectToArray;
+use Fad\QueryBuilder;
 use PDO;
 
 /**
@@ -34,46 +32,62 @@ abstract class Repository implements RepositoryInterface
         $this->pdo = $pdo;
     }
 
-
     /**
-     * @param $id
-     * @return mixed
+     * @param int $id
+     * @return object|null
+     * @throws \Exception
      */
     public function find(int $id): ?object
     {
+        $query = $this->prepareQueryBuilder(['id' => $id]);
+        $db = $this->query($query, [$id]);
 
-        $db = $this->pdo->prepare('SELECT * FROM ' . $this->getTableName() . ' WHERE id = ?');
-        $db->execute([$id]);
-
-        $db->setFetchMode(\PDO::FETCH_CLASS | \PDO::FETCH_PROPS_LATE, $this->getEntity());
-        return $db->fetch() ?: null;
+        if ($response = $db->fetch()) {
+            return Hydrate::lunch($this->getEntity(), $response);
+        }
+        return null;
     }
-
 
     /**
      * @param array $arguments
-     * @param bool $unique
-     * @return array|object|null
+     * @return object|null
+     * @throws \Exception
      */
-    public function findBy(array $arguments = [], bool $unique = false)
+    public function findOneBy(array $arguments = []): ?object
     {
-        $db = $this->pdo->prepare('SELECT * from ' . $this->getTableName() . $this->where($arguments));
-        $db->execute(array_values($arguments));
+        $query = $this->prepareQueryBuilder($arguments);
 
-        $db->setFetchMode(\PDO::FETCH_CLASS | \PDO::FETCH_PROPS_LATE, $this->getEntity());
-
-        if ($unique) {
-            return $db->fetch() ?: null;
+        $db = $this->query($query, array_values($arguments));
+        if ($response = $db->fetch()) {
+            return Hydrate::lunch($this->getEntity(), $response);
         }
-        return $db->fetchAll();
+        return null;
     }
 
     /**
      * @return array
+     * @throws \Exception
      */
     public function findAll(): array
     {
         return $this->findBy();
+    }
+
+    /**
+     * @param array $arguments
+     * @return array
+     * @throws \Exception
+     */
+    public function findBy(array $arguments = []): array
+    {
+        $query = $this->prepareQueryBuilder($arguments);
+        $db = $this->query($query, array_values($arguments));
+
+        $objects = [];
+        foreach ($db->fetchAll() as $data) {
+            $objects[] = Hydrate::lunch($this->getEntity(), $data);
+        }
+        return $objects;
     }
 
     /**
@@ -96,8 +110,12 @@ abstract class Repository implements RepositoryInterface
         try {
 
             $db = $this->pdo->prepare('INSERT INTO ' . $this->getTableName() . ' (' . $columns . ') VALUES (' . $values . ')');
+            $response = $db->execute(array_values($propertiesAreMapped));
 
-            return $db->execute(array_values(array_map([$this, 'formatter'], $propertiesAreMapped)));
+            if ($response === true) {
+                Hydrate::setId($entity, (int)$this->pdo->lastInsertId());
+            }
+            return $response;
 
         } catch (\Exception $e) {
 
@@ -126,8 +144,9 @@ abstract class Repository implements RepositoryInterface
             }
 
             $db = $this->pdo->prepare(
-                'UPDATE ' . $this->getTableName() . ' SET ' . implode(', ',
-                    $cols) . ' WHERE id =' . $entity->getid() . ''
+                'UPDATE ' . $this->getTableName()
+                . ' SET ' . implode(', ', $cols)
+                . ' WHERE id =' . $entity->getid() . ''
             );
 
             return $db->execute(array_map([$this, 'formatter'], $propertiesAreMapped));
@@ -139,7 +158,6 @@ abstract class Repository implements RepositoryInterface
 
     }
 
-
     /**
      * @param $entity
      * @return bool
@@ -148,7 +166,7 @@ abstract class Repository implements RepositoryInterface
     {
         $db = $this->pdo->prepare('DELETE FROM ' . $this->getTableName() . ' WHERE id = ?');
 
-        return $db->execute([is_object($entity) ? $entity->getId() : (int)$entity]);
+        return $db->execute([$entity->getId()]);
     }
 
     /**
@@ -157,64 +175,47 @@ abstract class Repository implements RepositoryInterface
      */
     public function count(array $arguments = []): int
     {
-        $db = $this->pdo->prepare('SELECT count(*) from ' . $this->getTableName() . $this->where($arguments));
+        $query = $this->prepareQueryBuilder($arguments)->select('count(*)');
+        $db = $this->pdo->prepare($query);
         $db->execute(array_values($arguments));
 
         return $db->fetchColumn();
     }
 
-
-
     /**
      * @param array $arguments
-     * @return string
+     * @return QueryBuilder
      */
-    private function where(array $arguments = [])
+    public function prepareQueryBuilder(array $arguments): QueryBuilder
     {
-
-        $where = '';
-        if (!empty($arguments)) {
-
-            $where = array_map(function ($key) {
-                return sprintf("%s = ?", $key);
-            }, array_keys($arguments));
-
-            $where = ' WHERE ' . implode(' AND ', $where);
+        $query = (new QueryBuilder())->select('*')->from($this->getTableName());
+        foreach ($arguments as $argument => $value) {
+            $query->where(sprintf("%s = ?", $argument));
         }
-        return $where;
-    }
 
-
-    /**
-     * @param $value
-     * @return mixed
-     */
-    private function formatter($value)
-    {
-
-        if ($value instanceof \DateTime) {
-            $value = $value->format('Y-m-d H:i:s');
-        }
-        return $value;
+        return $query;
     }
 
     /**
-     * @param EntityInterface $entity
-     * @return array
-     * @throws \ReflectionException
+     * @return QueryBuilder
      */
-    private function mapped(EntityInterface $entity): array
+    public function createQueryBuilder(): QueryBuilder
     {
+        return (new QueryBuilder())->from($this->getTableName());
+    }
 
-        $entity = $entity->toArray();
+    /**
+     * @param string $query
+     * @param array $data
+     * @return \PDOStatement
+     */
+    public function query(string $query, array $data = []): \PDOStatement
+    {
+        $db = $this->pdo->prepare($query);
+        $db->execute($data);
+        $db->setFetchMode(\PDO::FETCH_ASSOC);
 
-        $propertiesAreMapped = (new Annotation())->isMapped($this->getEntity());
-        $entity = array_filter($entity, function ($key) use ($propertiesAreMapped) {
-
-            return in_array($key, $propertiesAreMapped);
-        }, ARRAY_FILTER_USE_KEY);
-
-        return $entity;
+        return $db;
     }
 
     /**
@@ -223,6 +224,26 @@ abstract class Repository implements RepositoryInterface
     public function getPdo(): PDO
     {
         return $this->pdo;
+    }
+
+
+    /**
+     * @param EntityInterface $entity
+     * @return array
+     * @throws \ReflectionException
+     */
+    protected function mapped(EntityInterface $entity): array
+    {
+
+        $entityArray = ObjectToArray::convert($entity, true);
+
+        $propertiesAreMapped = Annotation::isMapped($this->getEntity());
+        $entityArray = array_filter($entityArray, function ($key) use ($propertiesAreMapped) {
+
+            return in_array($key, $propertiesAreMapped);
+        }, ARRAY_FILTER_USE_KEY);
+
+        return $entityArray;
     }
 
 
